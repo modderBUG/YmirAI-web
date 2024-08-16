@@ -1484,7 +1484,7 @@ export default {
           var content = resp.data;
 
           that.cid = conv.id;
-          that.conversation = that.initConvs(content.convs)
+          that.conversation = that.initConvs(content)
           setTimeout(() => {
             that.isScrollAndNotBottom();
           }, 300)
