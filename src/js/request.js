@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // 创建一个 axios 实例
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8888/', // 你的 API 基础 URL
-  timeout: 10000, // 请求超时时间
+  baseURL: "http://49.232.24.59" ,		// 'http://localhost:8888/', // 你的 API 基础 URL  
+  timeout: 30000, // 请求超时时间
 });
 
 // 请求拦截器
@@ -32,7 +32,7 @@ axiosInstance.interceptors.response.use(
 	
 	if(response.data.code==401){
 		localStorage.removeItem('token');
-		// window.location.href = '/login';
+		// window.location.href = '/';
 		// window.location.reload()
 	}
 	

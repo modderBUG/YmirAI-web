@@ -14,7 +14,10 @@
         @click="selectCharacter(character)"
       >
         <img :src="character.avatar" :alt="character.name" :class="{ 'grayscale': character.locked }" />
-        <div class="name">{{ character.name }}</div>
+        <div class="name">{{ character.name }} <div v-if="character.locked">🔒
+        	
+        </div>
+		 </div>
       </div>
     </div>
   </div>
@@ -24,11 +27,12 @@
 export default {
   data() {
     return {
-      selectedCharacter: null,
+      selectedCharacter: 2,
       characters: [
-        { id: 1, name: '逸仙', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/85px-%E9%80%B8%E4%BB%99%E5%A4%B4%E5%83%8F.jpg' },
-        { id: 2, name: '凯茜娅', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/85px-%E9%80%B8%E4%BB%99%E5%A4%B4%E5%83%8F.jpg' },
-        { id: 3, name: '里芙', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/85px-%E9%80%B8%E4%BB%99%E5%A4%B4%E5%83%8F.jpg', locked: true }, // 添加 locked 字段
+        { id: 1, name: '逸仙', avatar: 'https://patchwiki.biligame.com/images/blhx/f/fb/5964992vk46o94ifnb28i6d8hjx2ay7.jpg' },
+        { id: 2, name: '凯茜娅', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/character/kesya.jpg' },
+        { id: 3, name: '里芙', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/character/lyfu.jpg', locked: true }, // 添加 locked 字段
+		{ id: 4, name: '镇海', avatar: 'https://patchwiki.biligame.com/images/blhx/9/9d/6whbb99odze03lrh2bq59ae439ajsxi.jpg', locked: true }, // 添加 locked 字段
       ],
     };
   },
@@ -48,6 +52,7 @@ export default {
 }
 
 .characters {
+	margin-top: 10%;
   display: flex;
   justify-content: center;
   gap: 20px;
@@ -75,12 +80,12 @@ export default {
 }
 
 .character.locked {
-  opacity: 0.5; /* 使锁定角色变得透明 */
+  opacity: 0.8; /* 使锁定角色变得透明 */
   pointer-events: none; /* 禁止点击 */
 }
 
 .character img.grayscale {
-  filter: grayscale(100%); /* 将头像变为灰色 */
+  filter: grayscale(20%); /* 将头像变为灰色 */
 }
 
 .name {
