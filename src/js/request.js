@@ -32,7 +32,7 @@ axiosInstance.interceptors.response.use(
 	
 	if(response.data.code==401){
 		localStorage.removeItem('token');
-		// window.location.href = '/';
+		window.location.href = '/login';
 		// window.location.reload()
 	}
 	
@@ -42,7 +42,7 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // 如果响应状态为 401，删除本地 token 并重定向到 /login
       localStorage.removeItem('token');
-      // window.location.href = '/login';
+      window.location.href = '/login';
 	  // window.location.reload()
     }
     return Promise.reject(error);

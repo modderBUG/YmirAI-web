@@ -7,6 +7,7 @@
       <div class="form-group">
         <label for="file-upload" class="label">1.选择音频</label>
         <input type="file" id="file-upload" @change="onFileChange" accept="audio/*" class="file-input"/>
+		<audio v-if="audioUrl" controls :src="audioUrl"></audio>
       </div>
 
       <div class="form-group">
@@ -36,7 +37,7 @@
       <button @click="submit" class="submit-button">提交</button>
 	 <button @click="" class="submit-button">保存</button>
 
-      <audio v-if="audioUrl" :src="audioUrl" controls autoplay class="audio-player"></audio>
+      <audio v-if="resultUrl" :src="resultUrl" controls autoplay class="audio-player"></audio>
     </div>
 
     <div class="history-container">
@@ -44,7 +45,6 @@
       <div v-for="(item, index) in save_list" :key="index" class="history-card" @click="load_voice(item)">
         <p class="history-text">{{ item.file_name }}</p>
 		<p class="history-text">{{ item.prompts_text.slice(0,5) }}.....</p>
-        <!-- <audio :src="item.audioUrl" controls class="history-audio"></audio> -->
       </div>
     </div>
   </div>
@@ -59,6 +59,7 @@ export default {
       audioText: '',
       cloneText: '',
       audioUrl: null,
+	  resultUrl: null,
 	  labels: ['笑声', '呼吸声', '强调语气', '笑语气',"停顿"],
 	        selectedLabel: '',
       save_list: [{'id': 1, 'uid': 3, 'file_name': 'test', 'mime_type': 'wav', 'prompts_text': '加班后要去喝一杯吗？嗯？你不会忍心，让我一个人去吧。...我不想在这停留太久。...要找我的话，你有我的号码。', 'text': '你好，分析员。[breath]想我了吗[laughter]', 'upload_date': '2024-08-20 09:53:11'}, {'id': 2, 'uid': 3, 'file_name': '逸仙', 'mime_type': 'wav', 'prompts_text': '嗯，对女性做出这样的举动，想必指挥官也做好承担后果的心理准备了吧？', 'text': '你好，分析员。[breath]想我了吗[laughter]', 'upload_date': '2024-08-20 10:11:33'}, {'id': 3, 'uid': 3, 'file_name': '镇海', 'mime_type': 'wav', 'prompts_text': '你是在思考吗？还是说，只是单纯的在发呆？表情倒是挺可爱的呢，呵呵...', 'text': '你好，分析员。[breath]想我了吗[laughter]', 'upload_date': '2024-08-20 10:12:00'}]
@@ -74,18 +75,21 @@ export default {
 		    .then((result) => {
 			const b64_data = result.data.data
 			
-			console.log(res)
-				
-		  	  
-			const ab = new ArrayBuffer(b64_data.length);
+			// Base64 解码
+			const binaryString = window.atob(b64_data);
+			const len = binaryString.length;
+			const ab = new ArrayBuffer(len);
 			const ia = new Uint8Array(ab);
-			for (let i = 0; i < b64_data.length; i++) {
-			  ia[i] = b64_data.charCodeAt(i);
+			for (let i = 0; i < len; i++) {
+				ia[i] = binaryString.charCodeAt(i);
 			}
-	  
+
 			// 创建 File 对象
 			const file = new File([ab], 'audioFile.mp3', { type: "audio/mpeg" });
 			this.audioFile = file;
+
+			// 创建音频 URL
+			this.audioUrl = URL.createObjectURL(file);
 			
 			console.log(file)
 		  		  
@@ -114,64 +118,32 @@ export default {
 	      },
     onFileChange(event) {
       this.audioFile = event.target.files[0];
+	  
+	  this.audioUrl = URL.createObjectURL(this.audioFile);
     },
-    async submit() {
-      if (!this.audioFile || !this.audioText || !this.cloneText) {
-        alert('请填写所有字段并选择一个音频文件');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('file', this.audioFile);
-      formData.append('text', this.audioText);
-      formData.append('prompts_text', this.cloneText);
-	  
-	  
-	  this.axios.post(`/api/v1/get_voice`, formData)
-	    .then((result) => {
-	  	  
-	  	  that.conversation = result.data.data
-	  	  console.log("get_voice",result.data.data)
-	  	  console.log("speechesId",speechesId)
-	  	  console.log("url",that.conversation[that.conversation.length-1]["voice"][speechesId])
-	  	  
-	  	  that.playAudio(that.conversation[that.conversation.length-1]["voice"][speechesId])
-	  		  
-	    })
-	    .catch((err) => {
-	    });
-	  
-
-      try {
-        const response = await fetch('/api/v1/make_voice', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          this.audioUrl = url;
-
-          // 保存到历史记录
-          this.historyList.push({
-            text: this.cloneText,
-            audioUrl: url
-          });
-
-          // 清空输入框
-          this.audioText = '';
-          this.cloneText = '';
-          this.audioFile = null;
-        } else {
-          alert('生成音频时出错');
+    submit() {
+        if (!this.audioFile || !this.audioText || !this.cloneText) {
+            alert('请填写所有字段并选择一个音频文件');
+            return;
         }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('提交失败，请重试');
-      }
+    
+        const formData = new FormData();
+        formData.append('file', this.audioFile);
+        formData.append('text', this.audioText);
+        formData.append('prompts_text', this.cloneText);
+    
+        this.axios.post(`/api/v1/make_voice`, formData, { responseType: 'blob' })
+            .then((result) => {
+                const content = result.data; // 返回二进制文件
+                const url = URL.createObjectURL(content);
+                this.resultUrl = url;
+                console.log("Generated URL:", this.resultUrl);
+            })
+            .catch((err) => {
+                console.error("Error:", err);
+                alert('上传失败，请重试');
+            });
     },
-  
   getVoiceList(){
 	  this.axios.get(`/api/v1/voices`)
 	    .then((result) => {

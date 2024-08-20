@@ -49,10 +49,7 @@
                                 style="box-sizing: border-box; display: inline-block; overflow: hidden; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; position: relative; max-width: 100%;">
                                 <span
                                   style="box-sizing: border-box; display: block; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; max-width: 100%;">
-                                  <!-- <img aria-hidden="true" :src="require('../assets/imgs/' + avatarIdx + '.png')" -->
-								  
-								   <img aria-hidden="true" :src="require('../assets/imgs/' + 'kesya' + '.jpg')"
-								   
+                                  <img aria-hidden="true" :src="require('../assets/imgs/' + avatarIdx + '.png')"
                                     alt="huamn"
                                     style="display: block; max-width: 100%; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px;">
                                 </span>
@@ -201,6 +198,7 @@
 						<div class=" text-center">
 							<p>角色扮演生成式人工智能。</p>
 							<p>冲啊，你的AI战术女仆梦！</p>
+							点击进入：🔊<a href="/voiceclone" target="_blank" rel="noreferrer" class="underline">声音克隆</a>  
 						</div>
 						
                       <!-- <div class="md:flex items-start text-center gap-3.5">
@@ -289,7 +287,7 @@
                         </div>
                       </div> -->
 					  
-					  <div id="app-login-center" style="margin-top: 40px;" v-if="false">
+					  <div id="app-login-center" style="margin-top: 40px;" >
 					     <CharacterSelect @character-selected="handleCharacterSelected"/>
 					   </div>
                     </div>
@@ -616,7 +614,8 @@
     </div>
 
     <!-- 弹窗 -->
-    <div id="headlessui-portal-root" v-if="popupShow">
+    <!-- <div id="headlessui-portal-root" v-if="popupShow" v-if="false"> -->
+	<div id="headlessui-portal-root"  v-if="false"> 
 		<!-- <div id="headlessui-portal-root" v-if="false"> -->
       <div data-headlessui-portal="">
         <button type="button" aria-hidden="true"
@@ -634,9 +633,9 @@
                   id="headlessui-dialog-panel-:r1:" data-headlessui-state="open">
 				  
 				  <!-- 新加入的登陆组件 -->
-				   <div id="app-login-center">
+				   <!-- <div id="app-login-center">
 				    <AnimeLogin @login-success="handleLoginSuccess"/>
-				  </div>
+				  </div> -->
 		
                   </div>
                   <div class="mt-5 flex flex-col gap-3 sm:mt-4 sm:flex-row-reverse"></div>
@@ -688,7 +687,6 @@ import { marked } from 'marked';
 import hljs from "highlight.js";
 import '../assets/index.css'
 import 'highlight.js/styles/github.css';
-import AnimeLogin from '../login.vue';
 import CharacterSelect from '../components/CharacterSelect.vue';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { forEach } from 'lodash';
@@ -729,7 +727,7 @@ marked.use({ renderer });
 
 export default {
 	 components: {
-	    AnimeLogin,
+	
 		CharacterSelect,
 	  },
   data() {
@@ -1139,6 +1137,7 @@ export default {
     },
 	
 	chatRepeat() {
+		this.loadId();
 	  if (this.convLoading) {
 	    return
 	  }
@@ -1236,6 +1235,7 @@ export default {
 	},
 	
 	 send() {
+		 this.loadId();
 	  if (this.chatMsg.trim().length == 0) {
 	    return;
 	  }
@@ -1654,7 +1654,6 @@ export default {
 	  
     var theme = localStorage.getItem("theme") || "light"
     this.changeTheme(theme);
-    // this.loadId();
     this.loadConversations();
     this.loadAvatar();
 

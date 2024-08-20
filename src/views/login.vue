@@ -55,7 +55,8 @@ export default {
 			  that.$emit('login-success'); // 触发登录成功事件
 			  const token=result.data.data
 			  that.setToken(token)
-			  window.location.reload()
+			  // window.location.reload()
+			  window.location.href = '/home';
 		  }
 		  if(result.data.code==401){
 		  			  
@@ -88,9 +89,14 @@ body {
 }
 
 .login-container {
+	
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100vh;
+  background-image: url('https://example.com/your-anime-background.jpg');
+  background-size: cover;
+  background-position: center;
   perspective: 1000px;
 }
 
