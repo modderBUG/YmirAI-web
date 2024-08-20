@@ -5,17 +5,31 @@
       <h1 class="title">二次元声音克隆</h1>
 
       <div class="form-group">
-        <label for="file-upload" class="label">选择音频</label>
+        <label for="file-upload" class="label">1.选择音频</label>
         <input type="file" id="file-upload" @change="onFileChange" accept="audio/*" class="file-input"/>
       </div>
 
       <div class="form-group">
-        <label for="audio-text" class="label">音频文件的文本</label>
+        <label for="audio-text" class="label">2.音频文件的文本</label>
         <textarea id="audio-text" v-model="audioText" placeholder="输入音频文本..." class="text-input"></textarea>
       </div>
 
       <div class="form-group">
-        <label for="clone-text" class="label">自定义文本</label>
+		
+		  
+        <label for="clone-text" class="label">3.自定义文本</label>
+		
+		<div class="label-container">
+		      <span
+		        v-for="(label, index) in labels"
+		        :key="index"
+		        :class="['label-emo', { active: selectedLabel === label }]"
+		        @click="selectLabel(label)"
+		      >
+		        {{ label }}
+		      </span>
+		    </div>
+		
         <textarea id="clone-text" v-model="cloneText" placeholder="输入自定义文本..." class="text-input"></textarea>
       </div>
 
@@ -27,9 +41,10 @@
 
     <div class="history-container">
       <h2 class="history-title">记录</h2>
-      <div v-for="(item, index) in save_list" :key="index" class="history-card">
-        <p class="history-text">{{ item.name }}</p>
-        <audio :src="item.audioUrl" controls class="history-audio"></audio>
+      <div v-for="(item, index) in save_list" :key="index" class="history-card" @click="load_voice(item)">
+        <p class="history-text">{{ item.file_name }}</p>
+		<p class="history-text">{{ item.prompts_text.slice(0,5) }}.....</p>
+        <!-- <audio :src="item.audioUrl" controls class="history-audio"></audio> -->
       </div>
     </div>
   </div>
@@ -44,12 +59,59 @@ export default {
       audioText: '',
       cloneText: '',
       audioUrl: null,
-      save_list: [
-		  {"wav":"aaa","name":"aaa","prompts_text":"aaa","text":"aaa"}
-	  ]
+	  labels: ['笑声', '呼吸声', '强调语气', '笑语气',"停顿"],
+	        selectedLabel: '',
+      save_list: [{'id': 1, 'uid': 3, 'file_name': 'test', 'mime_type': 'wav', 'prompts_text': '加班后要去喝一杯吗？嗯？你不会忍心，让我一个人去吧。...我不想在这停留太久。...要找我的话，你有我的号码。', 'text': '你好，分析员。[breath]想我了吗[laughter]', 'upload_date': '2024-08-20 09:53:11'}, {'id': 2, 'uid': 3, 'file_name': '逸仙', 'mime_type': 'wav', 'prompts_text': '嗯，对女性做出这样的举动，想必指挥官也做好承担后果的心理准备了吧？', 'text': '你好，分析员。[breath]想我了吗[laughter]', 'upload_date': '2024-08-20 10:11:33'}, {'id': 3, 'uid': 3, 'file_name': '镇海', 'mime_type': 'wav', 'prompts_text': '你是在思考吗？还是说，只是单纯的在发呆？表情倒是挺可爱的呢，呵呵...', 'text': '你好，分析员。[breath]想我了吗[laughter]', 'upload_date': '2024-08-20 10:12:00'}]
+
     };
   },
   methods: {
+	  load_voice(item){
+		  this.audioText = item.prompts_text;
+		  this.cloneText = item.text;
+		  
+		  this.axios.get(`/api/v1/voice/`+item.id)
+		    .then((result) => {
+			const b64_data = result.data.data
+			
+			console.log(res)
+				
+		  	  
+			const ab = new ArrayBuffer(b64_data.length);
+			const ia = new Uint8Array(ab);
+			for (let i = 0; i < b64_data.length; i++) {
+			  ia[i] = b64_data.charCodeAt(i);
+			}
+	  
+			// 创建 File 对象
+			const file = new File([ab], 'audioFile.mp3', { type: "audio/mpeg" });
+			this.audioFile = file;
+			
+			console.log(file)
+		  		  
+		    })
+		    .catch((err) => {
+		    });
+		  
+	  },
+	  selectLabel(label) {
+	        this.selectedLabel = label;
+			if(label==='笑声'){
+				this.cloneText+="[laughter]"
+			}
+			if(label==='呼吸声'){
+				this.cloneText+="[breath]"
+			}
+			if(label==='强调语气'){
+				this.cloneText+="<strong></strong>"
+			}
+			if(label==='笑语气'){
+				this.cloneText+="<laughter></laughter>"
+			}
+			if(label==='停顿'){
+				this.cloneText+="...[breath]..."
+			}
+	      },
     onFileChange(event) {
       this.audioFile = event.target.files[0];
     },
@@ -63,6 +125,22 @@ export default {
       formData.append('file', this.audioFile);
       formData.append('text', this.audioText);
       formData.append('prompts_text', this.cloneText);
+	  
+	  
+	  this.axios.post(`/api/v1/get_voice`, formData)
+	    .then((result) => {
+	  	  
+	  	  that.conversation = result.data.data
+	  	  console.log("get_voice",result.data.data)
+	  	  console.log("speechesId",speechesId)
+	  	  console.log("url",that.conversation[that.conversation.length-1]["voice"][speechesId])
+	  	  
+	  	  that.playAudio(that.conversation[that.conversation.length-1]["voice"][speechesId])
+	  		  
+	    })
+	    .catch((err) => {
+	    });
+	  
 
       try {
         const response = await fetch('/api/v1/make_voice', {
@@ -92,12 +170,53 @@ export default {
         console.error('Error:', error);
         alert('提交失败，请重试');
       }
-    }
+    },
+  
+  getVoiceList(){
+	  this.axios.get(`/api/v1/voices`)
+	    .then((result) => {
+	  	
+	  	  this.save_list =  result.data.data
+	  		  
+	    })
+	    .catch((err) => {
+	    });
+  }
+  
+  },
+  mounted() {
+    console.log()
+	this.getVoiceList()
   }
 };
 </script>
 
 <style scoped>
+	.label-container {
+	  display: flex;
+	  justify-content: space-around;
+	  margin-bottom: 5px;
+	 
+	}
+	
+	
+	.label-emo {
+	  cursor: pointer;
+	  padding: 5px;
+	  background-color: #f2f2f2;
+	  border-radius: 5px;
+	  transition: background-color 0.3s ease;
+	  /* height: 20px; */
+	}
+	
+	.label-emo.active {
+	  background-color: #4fc08d;
+	  color: white;
+	}
+	
+	.label-emo:hover {
+	  background-color: #e0e0e0;
+	}
 	
 .container {
   display: flex;
