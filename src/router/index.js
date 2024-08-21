@@ -4,6 +4,9 @@ import Home from '../views/Home.vue'; // 假设这是你的主页
 import Register from '../views/Register.vue'; // 你的注册页面组件
 import VoiceClone from '../views/VoiceClone.vue'; // 你的注册页面组件
 import Login from '../views/login.vue'; // 你的注册页面组件
+import Characters from '../views/Characters.vue'; // 你的注册页面组件
+
+
 
 Vue.use(Router);
 
@@ -28,6 +31,11 @@ export default new Router({
       name: 'Register',
       component: Register
     },
+	{
+	  path: '/characters',
+	  name: 'Characters',
+	  component: Characters
+	},
 	{
 	  path: '/login',
 	  name: 'login',

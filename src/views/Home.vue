@@ -198,7 +198,8 @@
 						<div class=" text-center">
 							<p>角色扮演生成式人工智能。</p>
 							<p>冲啊，你的AI战术女仆梦！</p>
-							点击进入：🔊<a href="/voiceclone" target="_blank" rel="noreferrer" class="underline">声音克隆</a>  
+							点击进入：🔊<a href="/voiceclone" target="_blank" rel="noreferrer" class="underline">声音克隆</a>
+						    点击进入：🚺<a href="/characters" target="_blank" rel="noreferrer" class="underline">角色编辑</a>  
 						</div>
 						
                       <!-- <div class="md:flex items-start text-center gap-3.5">
