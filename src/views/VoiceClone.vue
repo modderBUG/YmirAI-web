@@ -31,7 +31,7 @@
 						class="text-input"></textarea>
 				</div>
 
-				<button @click="submit" class="submit-button">提交</button>
+				<button @click="submit" class="submit-button">{{submitFlag}}</button>
 				<button @click="save_audio" class="submit-button">保存</button>
 
 				<audio v-if="resultUrl" :src="resultUrl" controls autoplay class="audio-player"></audio>
@@ -54,6 +54,7 @@
 		data() {
 			return {
 				audioFile: null,
+				submitFlag: "提交",
 				audioText: '',
 				cloneText: '',
 				audioUrl: null,
@@ -145,6 +146,7 @@
 				this.audioUrl = URL.createObjectURL(this.audioFile);
 			},
 			submit() {
+				this.submitFlag = "提交中..."
 				if (!this.audioFile || !this.audioText || !this.cloneText) {
 					alert('请填写所有字段并选择一个音频文件');
 					return;
@@ -152,8 +154,8 @@
 
 				const formData = new FormData();
 				formData.append('file', this.audioFile);
-				formData.append('text', this.audioText);
-				formData.append('prompts_text', this.cloneText);
+				formData.append('text',this.cloneText );
+				formData.append('prompts_text', this.audioText);
 
 				this.axios.post(`/api/v1/make_voice`, formData, {
 						responseType: 'blob'
@@ -163,6 +165,7 @@
 						const url = URL.createObjectURL(content);
 						this.resultUrl = url;
 						console.log("Generated URL:", this.resultUrl);
+						this.submitFlag = "提交"
 					})
 					.catch((err) => {
 						console.error("Error:", err);

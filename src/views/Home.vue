@@ -1399,6 +1399,7 @@ export default {
 			conversation:conversation,
 			speechesId:speechesId,
 			convid:convid,
+			character_id:this.currentCharacter.id,
 		}
 		
 		this.axios.post(`/api/v1/get_voice`, body)

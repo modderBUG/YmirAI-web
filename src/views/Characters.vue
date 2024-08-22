@@ -57,16 +57,18 @@
 					您的浏览器不支持音频播放。
 				</audio>
 				<input type="file" @change="onAudioChange" accept=".wav" />
+				声音文本：
+				<input type="text" v-model="selectedCharacter.text"  />
 
-				<label>
+				<label class="check_box">
 					是否发布
-
-
-					<input type="checkbox" v-model="selectedCharacter.publish" />
+					<!-- <input class="check_box" type="checkbox" v-model="selectedCharacter.publish" /> -->
+					
+					<input type="text" v-model="selectedCharacter.publish"  /> (1:发布,0,不发布)
 
 				</label>
 
-				<button type="submit">保存角色</button>
+				<button type="submit">{{saveFlag}}</button>
 			</form>
 		</div>
 
@@ -78,6 +80,7 @@
 	export default {
 		data() {
 			return {
+				saveFlag:"保存角色",
 				characters: [], // 角色列表
 				pbcharacters: [], // 角色列表
 				selectedCharacter: {
@@ -96,7 +99,7 @@
 					avatar: "", // base64 图片
 					audio_data: "", // base64 音频
 					text: "", // base64 音频 文本
-					publish: false
+					publish: 0
 				}, // 当前选择的角色
 
 			};
@@ -229,6 +232,7 @@
 			},
 			
 			submitForm() {
+				this.saveFlag="保存中...."
 			      // 转换base64为二进制数据
 			      const formData = new FormData();
 			      formData.append('character_name', this.selectedCharacter.character_name);
@@ -257,6 +261,7 @@
 			      })
 			      .then(response => {
 			        console.log('Success:', response.data);
+					this.saveFlag="保存角色"
 			      })
 			      .catch(error => {
 			        console.error('Error:', error);
@@ -412,6 +417,10 @@
 		color: #ff69b4;
 		margin-top: 15px;
 		text-shadow: 0 0 2px rgba(255, 255, 255, 0.6);
+	}
+	
+	.check_box {
+		width: 20%;
 	}
 
 	.character-form input,
