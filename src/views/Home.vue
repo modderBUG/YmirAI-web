@@ -86,7 +86,7 @@
                         <div
                           class="text-base gap-4 md:gap-6 m-auto md:max-w-2xl lg:max-w-2xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0">
                           <div class="w-[30px] flex flex-col relative items-end" style="width: 10%;">
-                            <img aria-hidden="true" :src="require('../assets/imgs/kesya.jpg')"
+                            <img aria-hidden="true" :src="currentCharacter.avatar" v-if="currentCharacter.avatar"
                               alt="huamn"
                               style="display: block; max-width: 100%; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px;">
 
@@ -175,14 +175,16 @@
                               </div>
 							  
 							  <button class="p-1 rounded-md hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 disabled:dark:hover:text-gray-400" >
+									  
+									  <span style="font-size: 10px;" v-if="conv.voice && conv.voice[conv.idx]==='error'" > 转语音失败(太长) </span>
 									  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" class="icon-md-heavy"
-									    v-if="conv.voice && conv.voice[conv.idx]"
+									    v-if="conv.voice && conv.voice[conv.idx] && conv.voice[conv.idx]!=='error' "
 										@click.stop="playAudio(conv.voice[conv.idx])"
 									    >
 										
 									  <path fill="currentColor" fill-rule="evenodd" d="M11 4.91a.5.5 0 0 0-.838-.369L6.676 7.737A1 1 0 0 1 6 8H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2a1 1 0 0 1 .676.263l3.486 3.196A.5.5 0 0 0 11 19.09zM8.81 3.067C10.415 1.597 13 2.735 13 4.91v14.18c0 2.175-2.586 3.313-4.19 1.843L5.612 18H4a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h1.611zm11.507 3.29a1 1 0 0 1 1.355.401A10.96 10.96 0 0 1 23 12c0 1.85-.458 3.597-1.268 5.13a1 1 0 1 1-1.768-.934A8.96 8.96 0 0 0 21 12a8.96 8.96 0 0 0-1.085-4.287 1 1 0 0 1 .402-1.356M15.799 7.9a1 1 0 0 1 1.4.2 6.48 6.48 0 0 1 1.3 3.9c0 1.313-.39 2.537-1.06 3.56a1 1 0 0 1-1.673-1.096A4.47 4.47 0 0 0 16.5 12a4.47 4.47 0 0 0-.9-2.7 1 1 0 0 1 .2-1.4" clip-rule="evenodd"></path>
 									  </svg>
-									<div v-else  class="loader"></div>
+									  <div v-if="!conv.voice"  class="loader"></div>
 							  </button>
 							  
                             </div>
@@ -198,8 +200,8 @@
 						<div class=" text-center">
 							<p>角色扮演生成式人工智能。</p>
 							<p>冲啊，你的AI战术女仆梦！</p>
-							点击进入：🔊<a href="/voiceclone" target="_blank" rel="noreferrer" class="underline">声音克隆</a>
-						    点击进入：🚺<a href="/characters" target="_blank" rel="noreferrer" class="underline">角色编辑</a>  
+							<p>进入：🔊<a href="/voiceclone" target="_blank" rel="noreferrer" class="underline">声音克隆</a></p>
+							<p>进入：🚺<a href="/characters" target="_blank" rel="noreferrer" class="underline">角色编辑</a> </p>
 						</div>
 						
                       <!-- <div class="md:flex items-start text-center gap-3.5">
@@ -736,6 +738,7 @@ export default {
       theme: "light",
       popupShow: true,
       avatarIdx: 1,
+	  currentAudio:null,
       conversations: [],
       conversation: [],
       chatMsg: "",
@@ -748,20 +751,27 @@ export default {
       source: undefined,
       rsource: undefined,
       tsource: undefined,
-	  currentCharacterId: 1,
+	  currentCharacter: {},
 	  abort_controller: null,
 	  
-	  base_url: "http://49.232.24.59", // http://localhost:8888
+	  base_url: "http://49.232.24.59",  // "http://www.modderbug.cn:8080" // "http://localhost:8888"  // "http://49.232.24.59", // http://localhost:8888
     };
   },
   methods: {
 	  playAudio(audioUrl) {
-	        if (audioUrl) {
-	          const audio = new Audio(audioUrl);
-	          audio.play().catch(error => {
-	            console.error("播放音频失败:", error);
-	          });
-	        }
+	      if (this.currentAudio) {
+	        // 如果当前有音频在播放，先暂停或停止它
+	        this.currentAudio.pause();
+	        this.currentAudio.currentTime = 0; // 可选：重置播放时间
+	        this.currentAudio = null; // 清空当前音频实例
+			return
+	      }
+	      if (audioUrl) {
+	        this.currentAudio = new Audio(audioUrl);
+	        this.currentAudio.play().catch(error => {
+	          console.error("播放音频失败:", error);
+	        });
+	      }
 	},
     closeSource() {
       var that = this;
@@ -1138,7 +1148,6 @@ export default {
     },
 	
 	chatRepeat() {
-		this.loadId();
 	  if (this.convLoading) {
 	    return
 	  }
@@ -1173,9 +1182,12 @@ export default {
 	    
 	    const repeat_input = {
 	  					query:this.conversation[this.conversation.length - 2].speech,
-	  					history:history
+	  					history:history,
+						character_id:this.currentCharacter.id
 	  		  }
 	  console.log(repeat_input)
+	  
+	  const token = localStorage.getItem('token');
 	
 	  
 	  this.abort_controller = new AbortController();
@@ -1184,6 +1196,7 @@ export default {
 	              method: 'POST',
 	  			  headers: {
 	  			          'Content-Type': 'application/json',
+						  'Authorization': `Bearer ${token}`,
 	  			      },
 	  			  body: JSON.stringify(repeat_input),
 	          onmessage: (e) => {
@@ -1236,7 +1249,7 @@ export default {
 	},
 	
 	 send() {
-		 this.loadId();
+		 
 	  if (this.chatMsg.trim().length == 0) {
 	    return;
 	  }
@@ -1294,10 +1307,11 @@ export default {
 	  }
 	  const input_json = {
 						query:chatMsg,
-						history:history
+						history:history,
+						character_id:this.currentCharacter.id
 			  }
 	// console.log(input_json)
-	
+	  const token = localStorage.getItem('token');
 	  
 	  this.abort_controller = new AbortController();
 	  // this.eventSource = fetchEventSource('http://74.120.172.183:8216/v1/chat/completions', {
@@ -1305,6 +1319,7 @@ export default {
 	          method: 'POST',
 			  headers: {
 			          'Content-Type': 'application/json',
+					  'Authorization': `Bearer ${token}`,
 			      },
 			  body: JSON.stringify(input_json),
 	          onmessage: (e) => {
@@ -1635,11 +1650,11 @@ export default {
 
       this.isShowGoBottom = true;
     },
-	handleCharacterSelected(characterId) {
-	      console.log('所选角色 ID:', characterId);
+	handleCharacterSelected(character) {
+	      console.log('所选角色 ID:', character);
 	      // 你可以根据需要进一步处理所选角色
 		  
-		  this.currentCharacterId = characterId
+		  this.currentCharacter = character
 	    },
   },
   computed: {},
@@ -1652,7 +1667,7 @@ export default {
     }
   },
   mounted: function () {
-	  
+	this.loadId();
     var theme = localStorage.getItem("theme") || "light"
     this.changeTheme(theme);
     this.loadConversations();
@@ -1665,6 +1680,8 @@ export default {
 	
 	
 	const token = localStorage.getItem('token');
+	
+	console.log("currentCharacter",this.currentCharacter)
 
 	if (token!==null) {
 	  this.popupShow = false; // 设置 popupShow 为 true

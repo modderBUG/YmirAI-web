@@ -4,13 +4,22 @@
 
 		<!-- 角色列表 -->
 		<div class="character-list">
-			<h2>角色列表</h2>
+			<h2>个人角色列表</h2>
 			<ul>
 				<li v-for="character in characters" :key="character.id" @click="selectCharacter(character)">
 					{{ character.character_name }}
 				</li>
 			</ul>
 			<button @click="createNewCharacter">新建角色</button>
+		</div>
+
+		<div class="character-list character-list2">
+			<h2>共享角色列表</h2>
+			<ul>
+				<li v-for="character in pbcharacters" :key="character.id" @click="selectCharacter(character)">
+					{{ character.character_name }}
+				</li>
+			</ul>
 		</div>
 
 		<!-- 角色编辑表单 -->
@@ -35,10 +44,10 @@
 
 				<label>历史会话：</label>
 				<transition-group name="fade" mode="out-in">
-				<div v-for="(prompt, index) in selectedCharacter.prompts_texts" :key="index">
-					角色<input type="text" v-model="selectedCharacter.prompts_texts[index]['role']" required />
-					<textarea v-model="selectedCharacter.prompts_texts[index]['content']" required></textarea>
-				</div>
+					<div v-for="(prompt, index) in selectedCharacter.prompts_texts" :key="index">
+						角色<input type="text" v-model="selectedCharacter.prompts_texts[index]['role']" required />
+						<textarea v-model="selectedCharacter.prompts_texts[index]['content']" required></textarea>
+					</div>
 				</transition-group>
 				<button @click="addPrompt">添加新会话</button> <button @click="delPrompt">移除一条</button>
 
@@ -70,24 +79,25 @@
 		data() {
 			return {
 				characters: [], // 角色列表
+				pbcharacters: [], // 角色列表
 				selectedCharacter: {
-						character_name: "角色1",
-						summery: "这是角色1的简介",
-						prompts_texts: [{
-							"role": "system",
-							"content": "你是一个....模型"
-						}, {
-							"role": "user",
-							"content": "你好"
-						}, {
-							"role": "assestence",
-							"content": "我好"
-						}],
-						avatar: "", // base64 图片
-						audio_data: "", // base64 音频
-						text: "", // base64 音频 文本
-						publish: false
-					}, // 当前选择的角色
+					character_name: "角色1",
+					summery: "这是角色1的简介",
+					prompts_texts: [{
+						"role": "system",
+						"content": "你是一个....模型"
+					}, {
+						"role": "user",
+						"content": "你好"
+					}, {
+						"role": "assestence",
+						"content": "我好"
+					}],
+					avatar: "", // base64 图片
+					audio_data: "", // base64 音频
+					text: "", // base64 音频 文本
+					publish: false
+				}, // 当前选择的角色
 
 			};
 		},
@@ -95,17 +105,20 @@
 			// 模拟加载角色列表
 			loadCharacters() {
 
-
 				this.axios.get(`/api/v1/characters`)
 					.then((result) => {
-
 						this.characters = result.data.data
-
+					})
+					.catch((err) => {});
+					
+				this.axios.get(`/api/v1/characters?publish=true`)
+					.then((result) => {
+				
+						this.pbcharacters = result.data.data
+				
 					})
 					.catch((err) => {});
 
-				// 假设从服务端获取到的数据
-				
 			},
 			// 选择角色进行编辑
 			selectCharacter(character) {
@@ -144,43 +157,38 @@
 
 			// 添加新会话
 			addPrompt() {
-				
 				const a = []
-				a.length
-				
-				
-				if(this.selectedCharacter.prompts_texts.length==0){
+				if (this.selectedCharacter.prompts_texts.length == 0) {
 					this.selectedCharacter.prompts_texts.push({
-						"role":"system",
-						"content":""
+						"role": "system",
+						"content": ""
 					});
 					return
 				}
-				
-				if(this.selectedCharacter.prompts_texts[this.selectedCharacter.prompts_texts.length-1]['role']=="user"){
+				if (this.selectedCharacter.prompts_texts[this.selectedCharacter.prompts_texts.length - 1]['role'] ==
+					"user") {
 					this.selectedCharacter.prompts_texts.push({
-						"role":"assistant",
-						"content":""
+						"role": "assistant",
+						"content": ""
 					});
 					return
-				}else{
+				} else {
 					this.selectedCharacter.prompts_texts.push({
-						"role":"user",
-						"content":""
+						"role": "user",
+						"content": ""
 					});
 					return
 				}
-				
 			},
 			delPrompt() {
-				if(this.selectedCharacter.prompts_texts.length>0){
+				if (this.selectedCharacter.prompts_texts.length > 0) {
 					this.selectedCharacter.prompts_texts.pop()
-					
+
 					console.log(this.selectedCharacter.prompts_texts)
-				}else{
+				} else {
 					alert("不能再删啦")
 				}
-				
+
 			},
 
 			// 处理头像更换
@@ -213,10 +221,59 @@
 
 				// 模拟保存到服务端
 				console.log("保存角色：", this.selectedCharacter);
+				
+				this.submitForm()
 
 				// 提交后可以清空或重新加载角色列表
 				this.loadCharacters();
 			},
+			
+			submitForm() {
+			      // 转换base64为二进制数据
+			      const formData = new FormData();
+			      formData.append('character_name', this.selectedCharacter.character_name);
+			      formData.append('summery', this.selectedCharacter.summery);
+			      formData.append('prompts_texts', JSON.stringify(this.selectedCharacter.prompts_texts));
+			      formData.append('text', this.selectedCharacter.text);
+			      formData.append('publish', this.selectedCharacter.publish);
+			
+			      // 处理avatar
+			      if (this.selectedCharacter.avatar) {
+			        const avatarBlob = this.dataURLToBlob(this.selectedCharacter.avatar);
+			        formData.append('avatar', avatarBlob, 'avatar.png');
+			      }
+			
+			      // 处理audio_data
+			      if (this.selectedCharacter.audio_data) {
+			        const audioBlob = this.dataURLToBlob(this.selectedCharacter.audio_data);
+			        formData.append('audio_data', audioBlob, 'audio.mp3');
+			      }
+			
+			      // 提交数据
+			      this.axios.post('/api/v1/character', formData, {
+			        headers: {
+			          'Content-Type': 'multipart/form-data',
+			        },
+			      })
+			      .then(response => {
+			        console.log('Success:', response.data);
+			      })
+			      .catch(error => {
+			        console.error('Error:', error);
+			      });
+			    },
+			    dataURLToBlob(dataURL) {
+			      const byteString = atob(dataURL.split(',')[1]);
+			      const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+			      const ab = new ArrayBuffer(byteString.length);
+			      const ia = new Uint8Array(ab);
+			
+			      for (let i = 0; i < byteString.length; i++) {
+			        ia[i] = byteString.charCodeAt(i);
+			      }
+			
+			      return new Blob([ab], { type: mimeString });
+			    },
 		},
 		mounted() {
 			this.loadCharacters();
@@ -240,15 +297,17 @@
 		overflow-y: auto;
 		/* 允许垂直滚动 */
 	}
-.list-item {
-  transition: all 0.5s ease;
-}
 
-.fade-leave-active {
-  transition: all 0.5s ease;
-  transform: translateY(-20px);
-  opacity: 0;
-}
+	.list-item {
+		transition: all 0.5s ease;
+	}
+
+	.fade-leave-active {
+		transition: all 0.5s ease;
+		transform: translateY(-20px);
+		opacity: 0;
+	}
+
 	/* 光晕背景效果 */
 	#app::before {
 		content: '';
@@ -293,6 +352,10 @@
 		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 		float: left;
 		width: 20%;
+	}
+
+	.character-list2 {
+		float: right;
 	}
 
 	.character-list h2 {

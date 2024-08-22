@@ -13,6 +13,7 @@
         </div>
         <button type="submit">登录</button>
       </form>
+	  <p>没有账号？😊<a href="/register" target="_blank" rel="noreferrer" class="underline">注册</a></p>
 	  <div v-if="tips" > 用户密码错误  </div>
     </div>
   </div>

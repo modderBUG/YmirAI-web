@@ -16,6 +16,16 @@
           />
           <span v-if="errors.username" class="error-msg">{{ errors.username }}</span>
         </div>
+		<div class="form-group">
+		  <label for="username">昵称</label>
+		  <input
+		    type="text"
+		    v-model="nickname"
+		    id="nickname"
+		    placeholder="昵称"
+		  />
+		  <span v-if="errors.username" class="error-msg">{{ errors.username }}</span>
+		</div>
         <div class="form-group">
           <label for="email">邮箱</label>
           <input
@@ -33,7 +43,7 @@
             type="password"
             v-model="password"
             id="password"
-            @blur="validatePassword"
+            @change="validatePassword"
             placeholder="请输入密码"
           />
           <span v-if="errors.password" class="error-msg">{{ errors.password }}</span>
@@ -44,10 +54,11 @@
             type="password"
             v-model="confirmPassword"
             id="confirmPassword"
-            @blur="validateConfirmPassword"
+          
+			@change="validateConfirmPassword"
             placeholder="请再次输入密码"
           />
-          <span v-if="errors.confirmPassword" class="error-msg">{{ errors.confirmPassword }}</span>
+          <span v-if="errors.confirmPassword" class="error-msg" :id="errors.confirmPassword">{{ errors.confirmPassword }}</span>
         </div>
         <button type="submit" class="submit-btn">注册</button>
       </form>
@@ -60,6 +71,7 @@ export default {
   data() {
     return {
       username: '',
+	  nickname: '分析员9527',
       email: '',
       password: '',
       confirmPassword: '',
@@ -97,19 +109,52 @@ export default {
     },
     validateConfirmPassword() {
       if (this.confirmPassword !== this.password) {
-        this.errors.confirmPassword = '两次输入的密码不一致';
+        this.errors.confirmPassword ='两次输入的密码不一致';
       } else {
-        this.errors.confirmPassword = '';
+        this.errors.confirmPassword = null;
       }
     },
+	setToken(token) {
+			console.log('set token: ',token)
+	        localStorage.setItem('token', token);
+	      },
     validateForm() {
+		
+		
       this.validateUsername();
       this.validateEmail();
       this.validatePassword();
       this.validateConfirmPassword();
 
       if (!this.errors.username && !this.errors.email && !this.errors.password && !this.errors.confirmPassword) {
-        alert('注册成功！');
+		  
+		  
+		  const body = {
+			  username:this.username,
+			  password:this.password,
+			  nickname:this.nickname,
+			  email:this.email,
+		  }
+		  
+		  this.axios.post(`/api/v1/register`,body )
+		  	.then((result) => {
+		  		
+				if(result.data.code==400){
+					alert(result.data.message)
+					return
+				}
+				const token=result.data.data
+				this.setToken(token)
+				alert('注册成功！');
+				window.location.href = '/home';
+				
+		  	})
+		  	.catch((err) => {
+		  		console.error("Error:", err);
+		  		alert('注册失败');
+		  	});
+		  
+        
         // 这里可以添加表单提交逻辑
       }
     },

@@ -38,7 +38,7 @@
 			</div>
 
 			<div class="history-container">
-				<h2 class="history-title">记录</h2>
+				<h2 class="history-title">保存记录</h2>
 				<div v-for="(item, index) in save_list" :key="index" class="history-card" @click="load_voice(item)">
 					<button class="delete-button" @click.stop="delete_item(item.id,index)">✖</button>
 					<p class="history-text">{{ item.file_name }}</p>

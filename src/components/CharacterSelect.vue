@@ -29,8 +29,8 @@ export default {
     return {
       selectedCharacter: 2,
       characters: [
-        { id: 1, name: '逸仙', avatar: 'https://patchwiki.biligame.com/images/blhx/f/fb/5964992vk46o94ifnb28i6d8hjx2ay7.jpg' },
-        { id: 2, name: '凯茜娅', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/character/kesya.jpg' },
+        // { id: 1, name: '逸仙', avatar: 'https://patchwiki.biligame.com/images/blhx/f/fb/5964992vk46o94ifnb28i6d8hjx2ay7.jpg' },
+        // { id: 2, name: '凯茜娅', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/character/kesya.jpg' },
         { id: 3, name: '里芙', avatar: 'http://si5c7yq6z.hn-bkt.clouddn.com/character/lyfu.jpg', locked: true }, // 添加 locked 字段
 		{ id: 4, name: '镇海', avatar: 'https://patchwiki.biligame.com/images/blhx/9/9d/6whbb99odze03lrh2bq59ae439ajsxi.jpg', locked: true }, // 添加 locked 字段
       ],
@@ -40,9 +40,43 @@ export default {
     selectCharacter(character) {
       if (character.locked) return; // 如果角色被锁定，直接返回
       this.selectedCharacter = character.id;
-      this.$emit('character-selected', character.id);
+      this.$emit('character-selected', {id:character.id,avatar:character.avatar});
     },
+	async loadAavtar(character_id) {
+	    try {
+	        const result = await this.axios.get(`/api/v1/character/${character_id}?avatar=true`);
+	        return result.data.data;
+	    } catch (err) {
+	        console.error("Error loading avatar:", err);
+	    }
+	},
+	
+	async loadCharacters() {
+	    let pbcharacters = [];
+	    try {
+	        const result = await this.axios.get(`/api/v1/characters?publish=true`);
+	        pbcharacters = result.data.data;
+	
+	        for (let i = 0; i < pbcharacters.length; i++) {
+	            const avatarData = await this.loadAavtar(pbcharacters[i].id);
+	            pbcharacters[i].avatar = "data:image/png;base64," + avatarData;
+				pbcharacters[i].name = pbcharacters[i].character_name
+				
+	        }
+	        this.characters.unshift(...pbcharacters);
+	        console.log(this.characters);
+			this.$emit('character-selected',{id:this.selectedCharacter,avatar:this.characters[1].avatar});
+	    } catch (err) {
+	        console.error("Error loading characters:", err);
+	    }
+	}
+
   },
+  mounted() {
+  	this.loadCharacters();
+	
+	
+  }
 };
 </script>
 
