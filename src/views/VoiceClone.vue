@@ -209,19 +209,12 @@
 			},
 			delete_item(id, index) {
 
-
 				this.save_list.splice(index, 1);
-
-
 				this.axios.get(`/api/v1/voice/` + id + `?delete=True`)
 					.then((result) => {
-
 						this.getVoiceList()
-
 					})
 					.catch((err) => {});
-
-
 			}
 
 		},

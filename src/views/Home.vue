@@ -1113,7 +1113,8 @@ export default {
           if (first) {
             var newConv = {
               "id": that.cid,
-              "title": "New chat"
+              "title": "New chat",
+			  "character_id":that.currentCharacter.id
             }
 
             that.generateConvTitle(newConv);
@@ -1339,7 +1340,8 @@ export default {
 				  if (first) {
 				    var newConv = {
 				      "id": that.cid,
-				      "title": "New chat"
+				      "title": "New chat",
+					  "character_id":that.currentCharacter.id
 				    }
 					
 					newConv.title = chatMsg.slice(0,5)
@@ -1443,6 +1445,8 @@ export default {
 	  }
 	  
 	  // console.log()
+	  
+	  
 	  
 	  this.axios.post(`/api/v1/summary`, body)
 	    .then((result) => {
@@ -1589,7 +1593,24 @@ export default {
         })
         .catch((err) => {
         });
+		
+		this.loadAavtar(conv.character_id).then((avatarData)=>{
+			this.currentCharacter.avatar = "data:image/png;base64," + avatarData;
+			this.currentCharacter.id = conv.character_id
+		}).catch((err)=>{
+			
+		});
+		
+		
     },
+	async loadAavtar(character_id) {
+	    try {
+	        const result = await this.axios.get(`/api/v1/character/${character_id}?avatar=true`);
+	        return result.data.data;
+	    } catch (err) {
+	        console.error("Error loading avatar:", err);
+	    }
+	},
     editTitle(idx, conv) {
       this.convTitletmp = conv.title;
       conv.editable = true;

@@ -6,8 +6,10 @@
 		<div class="character-list">
 			<h2>个人角色列表</h2>
 			<ul>
-				<li v-for="character in characters" :key="character.id" @click="selectCharacter(character)">
-					{{ character.character_name }}
+				<li v-for="(character, index) in characters" :key="index" @click="selectCharacter(character)" class="character-item" >
+					<span class="character-name">{{ character.character_name }}</span>
+					
+					<button  @click.stop="delete_item(character.id,index)" class="delete-button">✖</button>
 				</li>
 			</ul>
 			<button @click="createNewCharacter">新建角色</button>
@@ -105,6 +107,15 @@
 			};
 		},
 		methods: {
+			delete_item(id, index) {
+			
+				this.characters.splice(index, 1);
+				this.axios.get(`/api/v1/character/` + id + `?delete=True`)
+					.then((result) => {
+						
+					})
+					.catch((err) => {});
+			},
 			// 模拟加载角色列表
 			loadCharacters() {
 
@@ -493,4 +504,43 @@
 		background-color: rgba(255, 255, 255, 0.8);
 		box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 	}
+	
+	
+
+	.character-item {
+	    display: flex;
+	    justify-content: space-between;
+	    align-items: center;
+	    padding: 10px;
+	    margin: 5px 0;
+	    background-color: #f9f9f9;
+	    border: 1px solid #ddd;
+	    border-radius: 5px;
+	    transition: background-color 0.3s;
+	}
+	
+	.character-item:hover {
+	    background-color: #f0f0f0;
+	}
+	
+	.character-name {
+	    flex-grow: 1;
+	    font-size: 16px;
+	    color: #333;
+	}
+	
+	.delete-button {
+	    background-color: #ff4d4d;
+	    color: white;
+	    border: none;
+	    border-radius: 3px;
+	    padding: 5px 10px;
+	    cursor: pointer;
+	    transition: background-color 0.3s;
+	}
+	
+	.delete-button:hover {
+	    background-color: #ff1a1a;
+	}
+
 </style>

@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+var _PROD_BASE_URL = "http://49.232.24.59"
+// var _PROD_BASE_URL = "http://localhost:8888/"
+
 // 创建一个 axios 实例
 const axiosInstance = axios.create({
-  baseURL:"http://49.232.24.59",  // "http://www.modderbug.cn:8080",   //'http://localhost:8888/', // "http://49.232.24.59" ,		// 'http://localhost:8888/', // 你的 API 基础 URL  
+  baseURL: _PROD_BASE_URL,  // "http://www.modderbug.cn:8080",   //'http://localhost:8888/', // "http://49.232.24.59" ,		// 'http://localhost:8888/', // 你的 API 基础 URL  
   timeout: 30000, // 请求超时时间
 });
 
